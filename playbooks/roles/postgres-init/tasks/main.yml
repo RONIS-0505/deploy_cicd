@@ -1,0 +1,78 @@
+---
+# tasks file for postgres-init
+- name: Add postgres to backup group
+  ansible.builtin.user:
+    name: postgres
+    groups:
+      - backup
+    append: yes
+
+- name: Create app database
+  community.postgresql.postgresql_db:
+    name: "{{ db_name }}"
+    state: present
+  become_user: postgres
+
+#User for monitoring
+- name: Create user for monitoring
+  community.postgresql.postgresql_user:
+    name: monitoring_user
+    password: "{{ db_password }}"
+    state: present
+  become_user: postgres
+
+- name: Grant privileges to monitoring user
+  community.postgresql.postgresql_membership:
+    group: pg_monitor
+    target_role: monitoring_user
+  become_user: postgres
+
+#Main user
+- name: Create db user
+  community.postgresql.postgresql_user:
+    name: "{{ db_user }}"
+    password: "{{ db_password }}"
+    state: present
+  become_user: postgres
+
+- name: Grant privileges to db user
+  community.postgresql.postgresql_privs:
+    database: "{{ db_name }}"
+    roles: "{{ db_user }}"
+    privs: ALL
+    type: database
+    grant_option: yes
+  become_user: postgres
+
+- name: Grant privileges on schema to db user
+  community.postgresql.postgresql_privs:
+    database: "{{ db_name }}"
+    roles: "{{ db_user }}"
+    privs: ALL
+    type: schema
+    objs: public
+    grant_option: yes
+  become_user: postgres
+
+- name: Create daily cron job for database backup
+  ansible.builtin.cron:
+    name: "Database backup daily at 5am"
+    user: postgres
+    minute: "0"
+    hour: "5"
+    job: "PGPASSWORD='{{ db_password }}' pg_dump -h localhost -p {{ ports.db_port.port }}  -U {{ db_user }} -F c {{ db_name }} > /backups/db_backups/backup_\\$(date +\\%F).dump"
+
+- name: Create weekly cron job for full database backup
+  ansible.builtin.cron:
+    name: "Database backup weekly sunday at 2am"
+    user: postgres
+    weekday: "7"
+    minute: "0"
+    hour: "2"
+    job: 'pg_dumpall -h localhost -p {{ ports.db_port.port }}  -U postgres > /backups/db_backups/full_backup_\\$(date +\\%F).dump'
+#postgres=# CREATE USER db_monitoring WITH PASSWORD 'db_monitoring!';
+
+
+  #postgres=# CREATE USER db_monitoring WITH PASSWORD 'db_monitoring!';
+  #postgres=# GRANT pg_monitor TO db_monitoring;
+  #GRANT ROLE

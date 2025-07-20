@@ -1,0 +1,53 @@
+services:
+  drone:
+    container_name: drone
+    image: drone/drone:2.26.0
+    environment:
+      DRONE_RPC_SECRET: '${DRONE_RPC_SECRET}'
+      DRONE_SERVER_HOST: '${DRONE_SERVER_HOST}'
+      DRONE_GITEA_SERVER: 'https://${GIT_DOMAIN}'
+      DRONE_SERVER_PROTO: https
+      DRONE_GITEA_CLIENT_ID: '${DRONE_GITEA_CLIENT_ID}'
+      DRONE_GITEA_CLIENT_SECRET: '${DRONE_GITEA_CLIENT_SECRET}'
+      DRONE_DATABASE_DRIVER: postgres
+      DRONE_DATABASE_DATASOURCE: postgres://drone:dronepass@postgres:5432/drone_db?sslmode=disable
+    volumes:
+      - /srv/cicd/drone:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+    networks:
+      - cicd_net
+
+  drone-runner:
+    container_name: drunner
+    image: drone/drone-runner-docker:1.8
+    environment:
+      DRONE_RPC_SECRET: ${DRONE_RPC_SECRET}
+      DRONE_RPC_HOST: drone
+      DRONE_RPC_PROTO: http
+      DRONE_RUNNER_CAPACITY: 2
+      DRONE_RUNNER_NAME: fun-runner
+
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+    depends_on:
+      - drone
+    networks:
+      - cicd_net
+
+  docker_registry:
+    container_name: docker_registry
+    image: registry:3.0.0
+    environment:
+      - OTEL_TRACES_EXPORTER=none
+    volumes:
+      - /srv/cicd/docker_registry:/var/lib/registry
+
+    restart: unless-stopped
+    networks:
+      - cicd_net
+
+networks:
+  cicd_net:
+    external: true

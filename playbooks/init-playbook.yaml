@@ -1,0 +1,11 @@
+---
+- name: Init
+  hosts: changed_server
+  become: yes
+  roles:
+
+    - prepare-directories
+    - docker-networks
+    - gitea
+    - drone
+    - metrics

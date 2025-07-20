@@ -1,0 +1,11 @@
+---
+# tasks file for docker-networks
+- name: Create a Docker bridge networks
+  community.docker.docker_network:
+    name: "{{ item.key }}"
+    driver: bridge
+    ipam_config:
+      - subnet: "{{ item.value.subnet }}"
+        gateway: "{{ item.value.gateway }}"
+    state: present
+  loop: "{{ docker_networks | dict2items }}"

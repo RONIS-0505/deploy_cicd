@@ -1,0 +1,43 @@
+services:
+  prometheus:
+    image: prom/prometheus:v3.4.2
+    container_name: prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    user: root
+    networks:
+      - monitoring_net
+    restart: unless-stopped
+
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:1.4.2
+    container_name: nginx-exporter
+    command:
+      - '--nginx.scrape-uri=http://nginx:9888/nginx_status'
+    networks:
+      - monitoring_net
+
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:v0.17.1
+    container_name: postgres-exporter
+    environment:
+      DATA_SOURCE_NAME: "postgresql://${POSTGRES_USER}:${POSTGRES_PASS}@${MONITORING_GATEWAY}:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable"
+    networks:
+      monitoring_net:
+        ipv4_address: "${POSTGRES_EXPORTER_IP}"
+
+  grafana:
+    image: grafana/grafana:12.0.2
+    container_name: grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: "${MAIN_USER}"
+      GF_SECURITY_ADMIN_PASSWORD: "${GRAFANA_PASSWORD}"
+    volumes:
+      - /srv/monitoring/grafana-storage:/var/lib/grafana
+    user: root
+    networks:
+      - monitoring_net
+    restart: unless-stopped
+networks:
+  monitoring_net:
+    external: true

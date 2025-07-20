@@ -1,0 +1,23 @@
+---
+# tasks file for gitea
+- name: Copy Gitea docker compose files
+  ansible.builtin.copy:
+    src: ../files/docker_files/
+    dest: /home/{{ main_user }}/workdir/gitea/
+    mode: '2640'
+    force: yes
+
+- name: Copy Gitea themes
+  ansible.builtin.copy:
+    src: ../files/themes/
+    dest: /srv/cicd/gitea_data/gitea/public/assets/css/
+    mode: '2775'
+#    force: yes
+
+- name: Run Gitea
+  community.docker.docker_compose_v2:
+    project_src: /home/{{ main_user }}/workdir/gitea/
+    files: gitea-compose.yaml
+    state: present
+    recreate: always
+

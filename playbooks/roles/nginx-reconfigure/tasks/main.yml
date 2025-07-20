@@ -1,0 +1,25 @@
+---
+- name: Copy nginx conf
+  ansible.builtin.copy:
+    src: "../files/nginx/"
+    dest: "/srv/proxy/nginx/"
+    force: yes
+
+- name: Copy proxy compose
+  ansible.builtin.copy:
+    src: "../files/docker_files/"
+    dest: "/home/{{ main_user }}/workdir/proxy/"
+    force: yes
+
+- name: Copy proxy static
+  ansible.builtin.copy:
+    src: "../files/static/"
+    dest: "/srv/proxy/static/"
+    force: yes
+
+- name: Run nginx-compose
+  community.docker.docker_compose_v2:
+    project_src: "/home/{{ main_user }}/workdir/proxy/"
+    files: nginx-compose.yaml
+    state: present
+    recreate: always

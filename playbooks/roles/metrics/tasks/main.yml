@@ -1,0 +1,16 @@
+---
+# tasks file for metrics
+- name: Copy Prometheus-Grafana compose files
+  ansible.builtin.copy:
+    src: ../files/
+    dest: /home/{{ main_user }}/workdir/monitoring/
+    mode: '0640'
+    force: yes
+
+- name: Run Prometheus-Grafana
+  community.docker.docker_compose_v2:
+    project_src: /home/{{ main_user }}/workdir/monitoring/
+    files: prometheus_grafana-compose.yaml
+    state: present
+    recreate: always
+

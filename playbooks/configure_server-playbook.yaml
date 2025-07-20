@@ -1,0 +1,13 @@
+---
+- name: New server configuration
+  hosts: new_server
+  become: yes
+  roles:
+    - base-tools
+    - set-groups
+    - set-users
+    - postgres-install
+    - postgres-init
+    - docker-install
+    - ssh
+    - firewall

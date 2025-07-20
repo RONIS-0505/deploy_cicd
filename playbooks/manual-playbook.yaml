@@ -1,0 +1,6 @@
+---
+- name: For different playbooks
+  hosts: changed_server
+  become: yes
+  roles:
+    - gitea

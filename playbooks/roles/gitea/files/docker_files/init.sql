@@ -1,0 +1,8 @@
+CREATE USER drone WITH PASSWORD 'dronepass';
+CREATE USER gitea WITH PASSWORD 'giteapass';
+
+CREATE DATABASE drone_db OWNER drone;
+CREATE DATABASE gitea_db OWNER gitea;
+
+GRANT ALL PRIVILEGES ON DATABASE drone_db TO drone;
+GRANT ALL PRIVILEGES ON DATABASE gitea_db TO gitea;

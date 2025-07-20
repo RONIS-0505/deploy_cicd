@@ -1,0 +1,34 @@
+---
+- name: Install SSH
+  ansible.builtin.package:
+    name:
+      - openssh-server
+
+    state: present
+
+- name: Change SSH port
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?Port'
+    line: "Port {{ ports.main_ssh_port.port }}"
+
+- name: Secure SSH config
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "^{{ item.regexp }}"
+    line: "{{ item.line }}"
+  loop:
+    - { regexp: '^#?PermitRootLogin', line: 'PermitRootLogin no' }
+    - { regexp: '^#?PubkeyAuthentication', line: 'PubkeyAuthentication yes' }
+    - { regexp: '^#?PasswordAuthentication', line: 'PasswordAuthentication no' }
+
+- name: Setup SSH keys
+  authorized_key:
+    user: "{{ main_user }}"
+    key: "{{ main_user_ssh_key }}"
+
+- name: Reload SSH
+  service:
+    name: ssh
+    state: reloaded
+    enabled: true

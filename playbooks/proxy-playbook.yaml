@@ -1,0 +1,7 @@
+---
+- name: Deploy proxy
+  hosts: changed_server
+
+  roles:
+    - nginx-first-start
+    - nginx-reconfigure

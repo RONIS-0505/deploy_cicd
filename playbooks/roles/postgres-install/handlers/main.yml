@@ -1,0 +1,7 @@
+---
+# handlers file for postgres-install
+- name: Reload postgres-install to apply changes
+  service:
+    name: postgresql
+    state: reloaded
+    enabled: true

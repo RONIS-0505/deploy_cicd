@@ -1,0 +1,53 @@
+services:
+  nginx:
+    container_name: nginx
+    image: nginx:1.28.0-bookworm
+    environment:
+      USER_ID: 1000
+      USER_GID: 1001
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /srv/proxy/nginx/:/etc/nginx/:ro
+      - /srv/proxy/certbot/letsencrypt:/etc/letsencrypt:ro
+      - /srv/proxy/certbot/www/:/var/www/certbot/
+      - /srv/log/nginx:/var/log/nginx
+      - /srv/proxy/static:/usr/share/nginx/static:ro
+
+    restart: unless-stopped
+    networks:
+      - cicd_net
+      - nginx_net
+      - test_net
+      - prod_net
+      - monitoring_net
+
+  certbot:
+    container_name: certbot
+    build: certbot/
+    env_file:
+      - .env
+    volumes:
+      - /srv/proxy/certbot/letsencrypt:/etc/letsencrypt
+      - /srv/proxy/certbot/www/:/var/www/certbot
+      - /srv/proxy/log/letsencrypt:/var/log/letsencrypt
+    restart: unless-stopped
+    user: root
+    depends_on:
+      - nginx
+    networks:
+      - nginx_net
+    dns:
+      - 8.8.8.8
+networks:
+  nginx_net:
+    external: true
+  cicd_net:
+    external: true
+  test_net:
+    external: true
+  prod_net:
+    external: true
+  monitoring_net:
+    external: true

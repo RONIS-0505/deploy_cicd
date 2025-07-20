@@ -1,0 +1,27 @@
+---
+# tasks file for set-users
+- name: Create new user
+  ansible.builtin.user:
+    name: "{{ main_user }}"
+    create_home: yes
+    shell: /bin/bash
+    password: "{{ user_password| password_hash('sha512') }}"
+
+- name: Add user to groups
+  ansible.builtin.user:
+    name: "{{ main_user }}"
+    groups: "{{ server_groups }}"
+    append: yes
+
+- name: Configure sudo to allow passwordless access for  user
+  become_user: root
+  lineinfile:
+    path: /etc/sudoers.d/ansible_nopasswd
+    create: yes
+    line: "{{ main_user }} ALL=(ALL) NOPASSWD: ALL"
+    validate: "/usr/sbin/visudo -cf %s"
+    mode: "0440"
+    state: present
+
+
+

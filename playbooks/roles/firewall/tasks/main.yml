@@ -1,0 +1,30 @@
+---
+# tasks file for firewall
+- name: Install UFW
+  ansible.builtin.apt:
+    name:
+      - ufw
+    state: present
+    update_cache: yes
+
+- name: Set default deny policy
+  ufw:
+    direction: incoming
+    policy: deny
+
+- name: Allow required ports
+  ufw:
+    rule: allow
+    port: "{{ item.value.port }}"
+    proto: "{{ item.value.proto | default('tcp') }}"
+  loop: "{{ ports | dict2items }}"
+
+- name: Enable UFW
+  ufw:
+    state: enabled
+
+- name: restart UFW
+  ansible.builtin.service:
+    name: ufw
+    state: restarted
+

@@ -1,0 +1,36 @@
+---
+# tasks file for postgres-install-config
+- name: Set PostgreSQL listen address (only local + host_ip)
+  lineinfile:
+    path: "/etc/postgresql/{{ db_version }}/main/postgresql.conf"
+    regexp: '^#?listen_addresses\s*='
+    line: "listen_addresses = 'localhost,{{ host_ip }},{{  docker_networks.monitoring_net.gateway }}'"
+    create: yes
+
+
+- name: Ensure external IPs
+  lineinfile:
+    path: "/etc/postgresql/{{ db_version }}/main/pg_hba.conf"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    insertafter: EOF
+  loop:
+    - regexp: '^host\s+all\s+all\s+{{ allowed_ip | regex_escape() }}\s+.*$'
+      line: "host    all     all    {{ allowed_ip }}/32    scram-sha-256"
+    - regexp: '^host\s+all\s+all\s+{{ postgres_exporter_ip | regex_escape() }}\s+.*$'
+      line: "host    all     all    {{ postgres_exporter_ip }}/32    scram-sha-256"
+
+
+- name: Set custom PostgreSQL port
+  lineinfile:
+    path: "/etc/postgresql/{{ db_version }}/main/postgresql.conf"
+    regexp: '^#?port\s*='
+    line: "port = {{ ports.db_port.port }}"
+    create: yes
+
+
+- name: Reload postgres-install to apply changes
+  service:
+    name: postgresql
+    state: reloaded
+    enabled: true

@@ -1,0 +1,6 @@
+steps:
+  - name: build
+    image: plugins/docker
+    settings:
+      repo: youruser/your-image
+      docker_host: ssh://user@host

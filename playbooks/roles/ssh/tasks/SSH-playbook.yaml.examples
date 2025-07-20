@@ -1,0 +1,51 @@
+---
+- name: Configure SSH
+  hosts: main_server
+  become: yes
+  tasks:
+    - name: Change SSH port
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?Port'
+        line: "Port {{ main_ssh_port }}"
+
+    - name: Secure SSH config
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: "^{{ item.regexp }}"
+        line: "{{ item.line }}"
+      loop:
+        - { regexp: '^#?PermitRootLogin', line: 'PermitRootLogin no' }
+        - { regexp: '^#?PubkeyAuthentication', line: 'PubkeyAuthentication yes' }
+        - { regexp: '^#?PasswordAuthentication', line: 'PasswordAuthentication no' }
+
+    - name: Setup SSH keys
+      authorized_key:
+        user: "{{ item }}"
+        state: present
+        key: "{{ user_ssh_key }}"
+      loop:
+        - "{{ ansible_user }}"
+        - "{{ new_user}}"
+
+    - name: Reload SSH
+      service:
+        name: ssh
+        state: reloaded
+
+    - name: Ensure SSH service is running
+      ansible.builtin.service:
+        name: ssh
+        state: restarted
+        enabled: true
+
+    - name: Check if SSH is listening on the correct port
+      become: yes
+      shell: "ss -tulpn | grep :{{ main_ssh_port }}"
+      register: ssh_port_check
+
+    - name: show SSH port
+      debug:
+        var: ssh_port_check.stdout
+
+

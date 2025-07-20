@@ -1,0 +1,7 @@
+---
+# tasks file for set-groups
+- name: Create groups
+  ansible.builtin.group:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ server_groups }}"

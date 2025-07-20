@@ -1,0 +1,25 @@
+---
+# tasks file for nginx-first-start
+- name: Copy nginx conf
+  ansible.builtin.copy:
+    src: ../files/nginx/nginx.conf
+    dest: /srv/proxy/nginx/nginx.conf
+    force: yes
+
+- name: Copy proxy compose
+  ansible.builtin.copy:
+    src: "../files/docker_files/"
+    dest: "/home/{{ main_user }}/workdir/proxy/"
+    force: yes
+
+- name: Run nginx-compose
+  community.docker.docker_compose_v2:
+    project_src: "/home/{{ main_user }}/workdir/proxy/"
+    files: nginx-compose.yaml
+    state: present
+    recreate: always
+
+- name: Wait for cert to be created
+  ansible.builtin.wait_for:
+    path: "/srv/proxy/certbot/letsencrypt/live/ronis0505.tech/fullchain.pem"
+    timeout: 60

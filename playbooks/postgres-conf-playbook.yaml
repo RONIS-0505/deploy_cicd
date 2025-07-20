@@ -1,0 +1,6 @@
+---
+- name: Postgres conf
+  hosts: changed_server
+  become: yes
+  roles:
+    - postgres-config

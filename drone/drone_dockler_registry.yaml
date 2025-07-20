@@ -1,0 +1,7 @@
+steps:
+  - name: build
+    image: your_private_registry/your_image:tag
+    image_pull_secrets:
+      - dockerconfigjson
+    commands:
+      - # your build command

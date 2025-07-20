@@ -1,0 +1,38 @@
+---
+- name: Install and configure UFW
+  hosts: main_server
+  become: yes
+  tasks:
+    - name: Install UFW
+      apt:
+        name:
+          - ufw
+        state: present
+        update_cache: yes
+
+    - name: Set default deny policy
+      ufw:
+        direction: incoming
+        policy: deny
+
+    - name: Allow required ports
+      ufw:
+        rule: allow
+        port: "{{ item.port }}"
+        proto: "{{ item.proto | default('tcp') }}"
+      loop:
+        - { port: "{{ gitea_ssh_port }}", proto: "tcp" }
+        - { port: "{{ main_ssh_port }}", proto: "tcp" }
+        - { port: "{{ https_port }}", proto: "tcp" }
+        - { port: "{{ http_port }}", proto: "tcp" }
+        - { port: "{{ db_port }}", proto: "tcp" }
+
+    - name: Enable UFW
+      ufw:
+        state: enabled
+
+    - name: restart UFW
+      service:
+        name: ufw
+        state: restarted
+

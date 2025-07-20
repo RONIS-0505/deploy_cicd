@@ -1,0 +1,22 @@
+---
+# tasks file for prepare directories
+- name: Copy services directories
+  ansible.builtin.copy:
+    src: "{{ item.src }}"
+    dest: /
+    mode: '2775'
+    directory_mode: '2775'
+  loop:
+    - { src: ~/backups/srv }
+    - { src: ../files/backups }
+
+- name: Set ownership and permissions  /srv
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    owner: "{{ main_user }}"
+    group: "{{ item.group }}"
+    mode: '2775'
+    recurse: yes
+  loop:
+    - { path: /srv, group: docker }
+    - { path: /backups, group: backup }
