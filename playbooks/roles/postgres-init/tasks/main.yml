@@ -54,22 +54,7 @@
     grant_option: yes
   become_user: postgres
 
-- name: Create daily cron job for database backup
-  ansible.builtin.cron:
-    name: "Database backup daily at 5am"
-    user: postgres
-    minute: "0"
-    hour: "5"
-    job: "PGPASSWORD='{{ db_password }}' pg_dump -h localhost -p {{ ports.db_port.port }}  -U {{ db_user }} -F c {{ db_name }} > /backups/db_backups/backup_\\$(date +\\%F).dump"
 
-- name: Create weekly cron job for full database backup
-  ansible.builtin.cron:
-    name: "Database backup weekly sunday at 2am"
-    user: postgres
-    weekday: "7"
-    minute: "0"
-    hour: "2"
-    job: 'pg_dumpall -h localhost -p {{ ports.db_port.port }}  -U postgres > /backups/db_backups/full_backup_\\$(date +\\%F).dump'
 #postgres=# CREATE USER db_monitoring WITH PASSWORD 'db_monitoring!';
 
 
