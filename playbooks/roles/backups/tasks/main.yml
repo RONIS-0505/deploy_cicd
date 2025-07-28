@@ -1,0 +1,28 @@
+---
+# tasks file for backups
+- name: Create daily cron job for database backup
+  ansible.builtin.cron:
+    name: "Database backup daily at 5am"
+    user: postgres
+    minute: "0"
+    hour: "5"
+    job: "PGPASSWORD='{{ db_password }}' pg_dump -h localhost -p {{ ports.db_port.port }}  -U {{ db_user }} -F c {{ db_name }} > /backups/prod_db_backups/daily_backup_$(date +\%F).dump"
+
+- name: Create weekly cron job for full database backup
+  ansible.builtin.cron:
+    name: "Database backup weekly sunday at 2am"
+    user: postgres
+    weekday: "7"
+    minute: "0"
+    hour: "2"
+    job: "pg_dumpall -h localhost -p {{ ports.db_port.port }}  -U postgres > /backups/prod_db_backups/full_backup_$(date +\%F).dump"
+
+
+- name: Create daily cron job for srv directory  backup
+  ansible.builtin.cron:
+    name: "srv directory backup daily at 5am"
+    user: root
+    minute: "0"
+    hour: "5"
+    job: "tar -czvf /backups/gitea_drone_backups/srv_backup_$(date +%F).tar.gz /srv"
+
