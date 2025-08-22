@@ -4,13 +4,16 @@
   lineinfile:
     path: "/etc/postgresql/{{ db_version }}/main/postgresql.conf"
     regexp: '^#?listen_addresses\s*='
-    line: "listen_addresses = 'localhost,{{ host_ip }},{{  docker_networks.monitoring_net.gateway }}'"
+    line: >
+      "listen_addresses = 'localhost,
+      {{ host_ip }},{{  docker_networks.monitoring_net.gateway }},
+      {{  docker_networks.prod_net.gateway }}'"
     create: yes
 
 
 - name: Ensure external IPs
   lineinfile:
-    path: "/etc/postgresql/{{ db_version }}/main/pg_hba.conf"
+    path: "rm"
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
     insertafter: EOF
@@ -18,7 +21,9 @@
     - regexp: '^host\s+all\s+all\s+{{ allowed_ip | regex_escape() }}\s+.*$'
       line: "host    all     all    {{ allowed_ip }}/32    scram-sha-256"
     - regexp: '^host\s+all\s+all\s+{{ postgres_exporter_ip | regex_escape() }}\s+.*$'
-      line: "host    all     all    {{ postgres_exporter_ip }}/32    scram-sha-256"
+      line: "host    all     all    {{ docker_networks.monitoring_net.gateway }}/16   scram-sha-256"
+    - regexp: '^host\s+all\s+all\s+{{ docker_networks.prod_net.gateway | regex_escape() }}\s+.*$'
+      line: "host    all     all    {{ docker_networks.prod_net.gateway }}/16    scram-sha-256"
 
 
 - name: Set custom PostgreSQL port
