@@ -3,6 +3,7 @@ services:
     image: prom/prometheus:v3.4.2
     container_name: prometheus
     volumes:
+      - /srv/monitoring/prometheus-storage:/prometheus
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
     user: root
     networks:
