@@ -12,6 +12,8 @@ services:
       DRONE_GITEA_CLIENT_SECRET: '${DRONE_GITEA_CLIENT_SECRET}'
       DRONE_DATABASE_DRIVER: postgres
       DRONE_DATABASE_DATASOURCE: postgres://drone:dronepass@postgres:5432/drone_db?sslmode=disable
+      DRONE_LOGS_PRETTY: true
+      DRONE_LOGS_COLOR: true
     volumes:
       - /srv/cicd/drone:/data
       - /var/run/docker.sock:/var/run/docker.sock
