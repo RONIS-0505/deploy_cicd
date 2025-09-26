@@ -17,6 +17,7 @@ services:
       - '--nginx.scrape-uri=http://nginx:9888/nginx_status'
     networks:
       - monitoring_net
+    restart: unless-stopped
 
   postgres-exporter:
     image: prometheuscommunity/postgres-exporter:v0.17.1
@@ -26,6 +27,7 @@ services:
     networks:
       monitoring_net:
         ipv4_address: "${POSTGRES_EXPORTER_IP}"
+    restart: unless-stopped
 
   grafana:
     image: grafana/grafana:12.0.2
